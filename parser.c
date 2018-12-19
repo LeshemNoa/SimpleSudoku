@@ -1,110 +1,117 @@
 #include "parser.h"
 
-bool parseSetCommand(char* commandStr, Command* commandOut) {
-	char* strtokRes = NULL;
+#define UNUSED(x) (void)(x)
 
-	SetCommandArguments args = {0};
+#define COMMAND_DELIMITERS " \t\r\n"
 
-	UNUSED(commandStr);
+typedef bool (*commandArgsParser)(char* arg, void* argsState, int argNo);
+typedef void (*commandArgsCleaner)(void* argsState);
 
-	strtokRes = strtok(NULL, COMMAND_DELIMITERS);
-	if (strtokRes == NULL) {
-		return false;
-	}
-	args.col = atoi(strtokRes);
-
-	strtokRes = strtok(NULL, COMMAND_DELIMITERS);
-	if (strtokRes == NULL) {
-		return false;
-	}
-	args.row = atoi(strtokRes);
-
-	strtokRes = strtok(NULL, COMMAND_DELIMITERS);
-	if (strtokRes == NULL) {
-		return false;
-	}
-	args.value = atoi(strtokRes);
-
-	memcpy(commandOut->arguments, &args, sizeof(args));
+bool parseIntArg(char* arg, int* dst) {
+	*dst = atoi(arg); /* For the time being we assume the argument to be a number */
 	return true;
 }
 
-bool parseHintCommand(char* commandStr, Command* commandOut) {
-	char* strtokRes = NULL;
-
-	HintCommandArguments args = {0};
-
-	UNUSED(commandStr);
-
-	strtokRes = strtok(NULL, COMMAND_DELIMITERS);
-	if (strtokRes == NULL) {
-		return false;
+bool setArgsParser(char* arg, void* argsState, int argNo) {
+	SetCommandArguments* setArgsState = (SetCommandArguments*)argsState;
+	switch (argNo) {
+	case 1:
+		return parseIntArg(arg, &(setArgsState->col));
+	case 2:
+		return parseIntArg(arg, &(setArgsState->row));
+	case 3:
+		return parseIntArg(arg, &(setArgsState->value));
 	}
-	args.col = atoi(strtokRes);
+	return false;
+}
 
-	strtokRes = strtok(NULL, COMMAND_DELIMITERS);
-	if (strtokRes == NULL) {
-		return false;
+bool hintArgsParser(char* arg, void* argsState, int argNo) {
+	HintCommandArguments* hintArgsState = (HintCommandArguments*)argsState;
+	switch (argNo) {
+	case 1:
+		return parseIntArg(arg, &(hintArgsState->col));
+	case 2:
+		return parseIntArg(arg, &(hintArgsState->row));
 	}
-	args.row = atoi(strtokRes);
+	return false;
+}
 
-	memcpy(commandOut->arguments, &args, sizeof(args));
+
+bool parseArgs(char* argsStr, void* argumentsStruct, int argsNum, commandArgsParser parser) {
+	char* arg = NULL;
+	int i = 0;
+
+	UNUSED(argsStr); /* It seems bizarre not to have this parameter, so we keep it even if it isn't used explicitly (it's used implicitly by strtok) */
+
+	for (i = 0; i < argsNum; i++) {
+		arg = strtok(NULL, COMMAND_DELIMITERS);
+		if (arg == NULL) {
+			return false;
+		}
+		if (! parser(arg, argumentsStruct, i + 1)) {
+			return false;
+		}
+	}
+
 	return true;
 }
 
-bool parseValidateCommand(char* commandStr, Command* commandOut) {
-	ValidateCommandArguments args = {0};
+void cleanupCommand(Command* command) {
+	commandArgsCleaner cleaners[] = {NULL, NULL, NULL, NULL, NULL, NULL}; /* No cleanup is necessary for any command yet */
 
-	UNUSED(commandStr);
+	if (command == NULL || command->arguments == NULL) {
+		return;
+	}
 
-	memcpy(commandOut->arguments, &args, sizeof(args));
-	return true;
-}
+	if (cleaners[command->type] != NULL) {
+		cleaners[command->type](command->arguments);
+	}
 
-bool parseRestartCommand(char* commandStr, Command* commandOut) {
-	RestartCommandArguments args = {0};
-
-	UNUSED(commandStr);
-
-	memcpy(commandOut->arguments, &args, sizeof(args));
-	return true;
-}
-
-bool parseExitCommand(char* commandStr, Command* commandOut) {
-	ExitCommandArguments args = {0};
-
-	UNUSED(commandStr);
-
-	memcpy(commandOut->arguments, &args, sizeof(args));
-	return true;
+	free(command->arguments);
 }
 
 bool parseCommand(char* commandStr, Command* commandOut) {
+	int argsNum = 0;
+	commandArgsParser parser = NULL;
+
 	char* type = strtok(commandStr, COMMAND_DELIMITERS);
 	if (type == NULL) {
 		commandOut->type = IGNORE;
 		return true;
-	}
-	if (strcmp(type, "set") == 0) {
+	} else if (strcmp(type, "set") == 0) {
 		commandOut->type = SET;
-		return parseSetCommand(commandStr, commandOut);
-	}
-	if (strcmp(type, "hint") == 0) {
+		commandOut->arguments = calloc(1, sizeof(SetCommandArguments));
+		argsNum = SET_COMMAND_ARGS_NUM;
+		parser = &setArgsParser;
+	} else if (strcmp(type, "hint") == 0) {
 		commandOut->type = HINT;
-		return parseHintCommand(commandStr, commandOut);
-	}
-	if (strcmp(type, "validate") == 0) {
+		commandOut->arguments = calloc(1, sizeof(HintCommandArguments));
+		argsNum = HINT_COMMAND_ARGS_NUM;
+		parser = &hintArgsParser;
+	} else if (strcmp(type, "validate") == 0) {
 		commandOut->type = VALIDATE;
-		return parseValidateCommand(commandStr, commandOut);
-	}
-	if (strcmp(type, "restart") == 0) {
+		commandOut->arguments = calloc(1, sizeof(ValidateCommandArguments));
+		argsNum = VALIDATE_COMMAND_ARGS_NUM;
+	} else if (strcmp(type, "restart") == 0) {
 		commandOut->type = RESTART;
-		return parseRestartCommand(commandStr, commandOut);
-	}
-	if (strcmp(type, "exit") == 0) {
+		commandOut->arguments = calloc(1, sizeof(RestartCommandArguments));
+		argsNum = RESTART_COMMAND_ARGS_NUM;
+	} else if (strcmp(type, "exit") == 0) {
 		commandOut->type = EXIT;
-		return parseExitCommand(commandStr, commandOut);
+		commandOut->arguments = calloc(1, sizeof(ExitCommandArguments));
+		argsNum = EXIT_COMMAND_ARGS_NUM;
+	} else {
+		return false;
 	}
 
+	if (commandOut->arguments == NULL) {
+		return false;
+	}
+
+	if (parseArgs(commandStr, commandOut->arguments, argsNum, parser)) {
+		return true;
+	}
+
+	cleanupCommand(commandOut);
 	return false;
 }
