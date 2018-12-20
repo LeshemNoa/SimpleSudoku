@@ -1,43 +1,39 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-#include <stdbool.h> // TODO: removed your 'boolean' macro and replaced it with functionality from this library.
+#include <stdbool.h>
 
-// TODO: check which of the elements here should be visible to an outsider
+#define N (3)
+#define N_SQUARE (N*N)
 
-#define DIM (9) // TODO: consider changing to N (3)
-				// VISIBILE: yes
+typedef struct {
+	int value;
+    bool isFixed;} Cell; /* VISIBILE: probably not */ /* Also move to solver */
 
-// TODO: we probably need a STATE struct
-// TODO: it may be useful to keep here the number of slots that need solving
-// TODO: we need to keep a copy of the solved board
+typedef struct {
+	Cell cells[N_SQUARE][N_SQUARE];} Board; /* TODO: this will be part of the State struct
+											 VISIBILE: no
+											 move to solver */
+typedef struct State State;
 
-typedef struct {int val;
-    			bool isFixed;} Cell; // VISIBILE: probably not
+void exportBoard(State* state, int board[N_SQUARE][N_SQUARE]);
 
-typedef struct {Cell cell[DIM][DIM];} Board; // TODO: this will be part of the State struct
-											 // VISIBILE: no
+typedef enum setErrorType {
+	VALUE_FIXED,
+	VALUE_INVALID} SetErrorType;
 
-void printBoard(Board* b); // TODO: printing is done via main_aux. We would need a function to export the state of the board.
-Board* createBoard(); // TODO: rename 'initialise'
-					  // VISIBILE: yes
-Board* cloneBoard(Board* b); //TODO: what is the need for this?
+bool set(State* state, int row, int col, int value, SetErrorType* errorTypeOut);
 
-void destroyBoard(Board* b); // TODO: rename 'destruct'
-							 // VISIBILE: YES
+int hint(State* state, int row, int col);
 
-void setCellValue(Board* b, int i, int j, int val); // VISIBILE: yesS (should probably be invisible, but be used by a visible set function)
-void setCellFix(Board* b, int i, int j, bool fix); // VISIBLE: no
-int getCellValue(Board* b, int i, int j); // VISIBILE: yes (should probably be invisible, but be used by a visible getHint function)
-bool getCellFix(Board* b, int i, int j); // VISIBLE: no
+/*bool validate(State* state);
 
-bool nextEmptyCell(Board* b, int* row, int* col); // VISIBLE: no
+bool restart(State* state);
 
-bool validateRow(Board* b, int i); // VISIBLE: no
-bool validateCol(Board* b, int j); // VISIBLE: no
-bool validateBlock(Board* b, int blockNum); // VISIBLE: no
-bool validateGame(Board* b); // VISIBLE: yes
-int whichBlock(int i, int j); // VISIBLE: no
+bool exit(State* state); // TODO: choose better (not overriding) name
 
+bool initialise(int numCellsToFill, State* stateOut);
+
+bool destruct(State* state); // TODO: check if needs bool or void is good enough */
 
 #endif /* GAME_H_ */
