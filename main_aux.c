@@ -73,7 +73,7 @@ bool getNumCellsToFill(int* numCellsToFillOut) {
 }
 
 bool initialStage(State** state) {
-	Board board = {0};
+	Board board = {{{{0}}}};
 
 	int numFixedCells = 0;
 
@@ -112,7 +112,7 @@ void performSetCommand(State* state, SetCommandArguments* args) {
 			break;
 		}
 	} else {
-		Board board = {0};
+		Board board = {{{{0}}}};
 		exportBoard(state, &board);
 		printBoard(&board);
 
@@ -127,7 +127,7 @@ void performHintCommand(State* state, HintCommandArguments* args) {
 }
 
 void performValidateCommand(State* state) {
-	Board solution = {0};
+	Board solution = {{{{0}}}};
 	if (solvePuzzle(state, &solution)) {
 		printf("Validation passed: board is solvable\n");
 	} else {
