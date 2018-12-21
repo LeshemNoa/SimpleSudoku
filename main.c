@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 	SP_BUFF_SET();
 
 
-	if (argc > 0) {
+	if (argc > 1) {
 		int seed = atoi(argv[1]);
 		srand(seed);
 	} else {
