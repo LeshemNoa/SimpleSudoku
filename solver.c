@@ -75,7 +75,7 @@ bool generatePuzzleRec(Board* board, int curRow, int curCol) {
 			chosenIndex = rand() % numPotentialValues;
 		}
 		board->cells[curRow][curCol].value = potentialValues[chosenIndex];
-		if (solvePuzzleRec(board, nextRow, nextCol)) {
+		if (generatePuzzleRec(board, nextRow, nextCol)) {
 			return true;
 		} else {
 			/* NOTE: this is the smart way (complexity-wise) of doing this -
