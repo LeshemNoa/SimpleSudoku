@@ -105,6 +105,9 @@ bool parseCommand(char* commandStr, Command* commandOut) {
 	}
 
 	if (commandOut->arguments == NULL) {
+		/* NOTE: for now we are allowed this behaviour: */
+		printf("Error: parseCommand has failed\n");
+		exit(EXIT_FAILURE);
 		return false;
 	}
 
@@ -112,6 +115,5 @@ bool parseCommand(char* commandStr, Command* commandOut) {
 		return true;
 	}
 
-	cleanupCommand(commandOut);
 	return false;
 }

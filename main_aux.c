@@ -65,7 +65,9 @@ bool getNumCellsToFill(int* numCellsToFillOut) {
 			}
 		} else {
 			printf("Error: not a number\n");
-			return false; /* TODO: need to clear stdin off of bad character(s) */
+			/* NOTE: for now we are allowed this behaviour: */
+			printf("Error: getNumCellsToFill has failed\n");
+			exit(EXIT_FAILURE);
 		}
 	}
 }

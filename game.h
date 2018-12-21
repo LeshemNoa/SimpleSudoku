@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define N (3)
 #define N_SQUARE (N*N)

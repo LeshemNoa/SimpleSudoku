@@ -45,9 +45,10 @@ bool blockContains(Board* board, int block, int value) {
 }
 
 bool isCellValueValid(Board* board, int row, int col, int value) {
-	return !rowContains(board, row, value) &&
-		   !colContains(board, col, value) &&
-		   !blockContains(board, whichBlock(row, col), value);
+	return (getCellValue(board, row, col) == value) ||
+		   (!rowContains(board, row, value) &&
+		    !colContains(board, col, value) &&
+		    !blockContains(board, whichBlock(row, col), value));
 }
 
 void setCellValue(Board* board, int row, int col, int value) {
@@ -67,18 +68,42 @@ bool isCellFixed(Board* board, int row, int col) {
 	return board->cells[row][col].isFixed;
 }
 
+bool isCellEmpty(Board* board, int row, int col) {
+	return getCellValue(board, row, col) == EMPTY_CELL_VALUE;
+}
+
+void emptyCell(Board* board, int row, int col) {
+	setCellValue(board, row, col, EMPTY_CELL_VALUE);
+}
+
+void setPuzzleCell(State* state, int row, int col, int value) {
+	if (isCellEmpty(&(state->puzzle), row, col)) {
+		state->numNonSet--;
+	}
+	setCellValue(&(state->puzzle), row, col, value);
+}
+
 bool set(State* state, int row, int col, int value, SetErrorType* errorTypeOut) {
 	if (isCellFixed(&(state->puzzle), row, col)) {
 		*errorTypeOut = VALUE_FIXED;
 		return false;
 	}
-	if (! isCellValueValid(&(state->puzzle), row, col, value)) {
-		*errorTypeOut = VALUE_INVALID;
-		return false;
+	if (value != EMPTY_CELL_VALUE) {
+		if (! isCellValueValid(&(state->puzzle), row, col, value)) {
+			*errorTypeOut = VALUE_INVALID;
+			return false;
+		} else {
+			if (isCellEmpty(&(state->puzzle), row, col)) {
+				state->numNonSet--;
+			}
+			setCellValue(&(state->puzzle), row, col, value);
+		}
+	} else {
+		if (!isCellEmpty(&(state->puzzle), row, col)) {
+			state->numNonSet++;
+		}
+		emptyCell(&(state->puzzle), row, col);
 	}
-
-	setCellValue(&(state->puzzle), row, col, value);
-	state->numNonSet--;
 
 	return true;
 }
@@ -115,6 +140,9 @@ void clearNonFixedCells(Board* board) {
 bool initialise(int numCellsToFill, State** stateOut, Board* board) {
 	*stateOut = calloc(1, sizeof(State));
 	if (*stateOut == NULL) {
+		/* NOTE: for now we are allowed this behaviour: */
+		printf("Error: initialise has failed\n");
+		exit(EXIT_FAILURE);
 		return false;
 	}
 
