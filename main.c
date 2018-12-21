@@ -1,21 +1,22 @@
 #include <stdio.h>
-#include "game.h"
+#include <stdlib.h>
+#include <time.h>
 
-
+#include "SPBufferset.h"
+#include "main_aux.h"
 
 int main(int argc, char** argv) {
-    Board* b = createBoard();
-    /*b->cell[0][0].val = 1;
-    b->cell[0][0].isFixed = 1;*/
-    printBoard(b);
-    destroyBoard(b);
+	SP_BUFF_SET();
+	if (argc > 0) {
+		srand(atoi(argv[0])); /*TODO: check validity of doing this.*/
+	}
 
-    if (argc == 2) {
-        char* seed = argv[1];
-        printf("seed is %s\n", seed);
-    } else {
-        printf("usage: %s <seed>\n", argv[0]);
-        return -1;
-    }
-    return 0;
+	while (true) {
+		bool shouldExit = runGame();
+		if (shouldExit) {
+			break;
+		}
+	}
+
+	return 0;
 }

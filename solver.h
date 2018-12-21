@@ -1,4 +1,10 @@
+#ifndef SOLVER_H_
+#define SOLVER_H_
+
 #include "game.h"
 
-Board* solveBoard(Board* b);
+bool solvePuzzle(State* state, Board* solution);
 
+bool generatePuzzle(Board* board);
+
+#endif /* SOLVER_H_ */
