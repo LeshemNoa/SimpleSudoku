@@ -70,12 +70,21 @@ bool generatePuzzleRec(Board* board, int curRow, int curCol) {
 			potentialValues[numPotentialValues++] = value;
 
 	while (numPotentialValues > 0) {
-		int randomIndex = rand() % numPotentialValues;
-		board->cells[curRow][curCol].value = potentialValues[randomIndex];
+		int chosenIndex = 0;
+		if (numPotentialValues > 1) {
+			chosenIndex = rand() % numPotentialValues;
+		}
+		board->cells[curRow][curCol].value = potentialValues[chosenIndex];
 		if (solvePuzzleRec(board, nextRow, nextCol)) {
 			return true;
+		} else {
+			/* NOTE: this is the smart way (complexity-wise) of doing this -
+			potentialValues[randomIndex] = potentialValues[numPotentialValues--]; */
+			int i = 0;
+			numPotentialValues--;
+			for (i = chosenIndex; i < numPotentialValues; i++)
+				potentialValues[i] = potentialValues[i + 1];
 		}
-		potentialValues[randomIndex] = potentialValues[numPotentialValues--];
 	}
 
 	board->cells[curRow][curCol].value = EMPTY_CELL_VALUE;
