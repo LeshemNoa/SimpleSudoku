@@ -119,8 +119,8 @@ int hint(State* state, int row, int col) {
 void randomlyFixCells(Board* board, int numCellsToFix) {
 	int fixCount = 0;
 	while (fixCount < numCellsToFix) {
-		int row = rand() % N_SQUARE;
 		int col = rand() % N_SQUARE;
+		int row = rand() % N_SQUARE;
 
 		if (! isCellFixed(board, row, col)) {
 			fixCell(board, row, col);
