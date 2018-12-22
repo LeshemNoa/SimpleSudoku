@@ -59,15 +59,16 @@ bool parseArgs(char* argsStr, void* argumentsStruct, int argsNum, commandArgsPar
 void cleanupCommand(Command* command) {
 	commandArgsCleaner cleaners[] = {NULL, NULL, NULL, NULL, NULL, NULL}; /* No cleanup is necessary for any command yet */
 
-	if (command == NULL || command->arguments == NULL) {
+	if (command == NULL)
 		return;
-	}
 
 	if (cleaners[command->type] != NULL) {
 		cleaners[command->type](command->arguments);
 	}
 
-	free(command->arguments);
+ 	if (command->arguments != NULL) {
+		free(command->arguments);
+	}
 }
 
 bool parseCommand(char* commandStr, Command* commandOut) {
