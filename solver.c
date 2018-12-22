@@ -62,7 +62,7 @@ bool generatePuzzleRec(Board* board, int curRow, int curCol) {
 	}
 
 	if (board->cells[curRow][curCol].value != EMPTY_CELL_VALUE) {
-		return solvePuzzleRec(board, nextRow, nextCol);
+		return generatePuzzleRec(board, nextRow, nextCol);
 	}
 
 	for (value = 1; value <= N_SQUARE; value++) /* NOTE: could improve complexity of this */
