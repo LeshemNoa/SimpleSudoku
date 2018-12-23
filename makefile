@@ -1,7 +1,6 @@
 CC = gcc
 OBJS = game.o solver.o main_aux.o parser.o main.o
-# TODO: decide on final name
-EXEC = hw3
+EXEC = sudoku
 COMP_FLAG = -ansi -Wall -Wextra -Werror -pedantic-errors
 
 $(EXEC): $(OBJS)

@@ -4,14 +4,63 @@
 
 #define COMMAND_DELIMITERS " \t\r\n"
 
+/* function pointer to a concrete command type's ArgParser. There currently are 2 of these:
+* setArgsParser and hintArgsParser.	
+* @params arg			[in] the string containing the specific argument currently
+ * 						being parsed
+* @params argState 		[in, out] a pointer to the concrete command argument struct
+* @params argNo		 	[in] the parsed argument's index
+*/
 typedef bool (*commandArgsParser)(char* arg, void* argsState, int argNo);
+
+/* 
+* Reserved for future use. 
+*
+* function pointer to a concrete implementation of a command cleaner of a specific
+* command type.
+* 
+* @params argState	a generic pointer to the concrete command argument struct
+* 
+*
+*/
 typedef void (*commandArgsCleaner)(void* argsState);
 
+/**
+ * parseIntArg parses a string representing an integer into an integer, then
+ * assigns it to the provided integer pointer. 
+ * 
+ * @param arg		[in] the string to be parsed 
+ * @param dst 		[in, out] a pointer to an integer to be assigned with
+ * 					the parse result
+ * @return true		iff parsing was successful 
+ * @return false 	iff provided input was not entirely composed of digits
+ */
 bool parseIntArg(char* arg, int* dst) {
-	*dst = atoi(arg); /* For the time being we assume the argument to be a number */
+	char* p;
+
+	/* validate that arg is all digits */
+	for (p = arg; *p != '\0'; p++)
+		if (*p < '0' || '9' < *p)
+			return false;
+
+	*dst = atoi(arg);
 	return true;
 }
 
+/**
+ * setArgsParser concretely implements an argument parser for the 'set' command. 
+ * 
+ * @param arg			[in] the string containing the specific argument currently
+ * 						being parsed and assigned to the appropriate attribute 
+ * @param argsState		[in, out] a generic pointer to a command argument struct, casted
+ * 						to be a SetCommandArgument struct containing the arguments	 
+ * @param argNo 		[in] the parsed argument's index: argument 1 is the number of
+ * 						column of the cell for which the user requested a hint, argument 
+ * 						2 is the number of the row, and argument 3 is the value to be set
+ * 						in the cell with those indices
+ * @return true 		iff parseIntArg successfully parsed and set a valid integer
+ * @return false 		iff the parsing failed
+ */
 bool setArgsParser(char* arg, void* argsState, int argNo) {
 	SetCommandArguments* setArgsState = (SetCommandArguments*)argsState;
 	switch (argNo) {
@@ -25,6 +74,19 @@ bool setArgsParser(char* arg, void* argsState, int argNo) {
 	return false;
 }
 
+/**
+ * hintArgsParser concretely implements an argument parser for the 'hint' command. 
+ * 
+ * @param arg	 		[in] the string containing the specific argument currently
+ * 						being parsed and assigned to the appropriate attribute
+ * @param argsState		[in, out] a generic pointer to a command argument struct, casted
+ * 						to be a HintCommandArgument struct containing the arguments	
+ * @param argNo 		[in] the parsed argument's index: argument 1 is the number of
+ * 						column of the cell for which the user requested a hint, and
+ * 						argument 2 is the number of the row
+ * @return true			iff parseIntArg successfully parsed and set a valid integer 		
+ * @return false 		iff the parsing failed
+ */
 bool hintArgsParser(char* arg, void* argsState, int argNo) {
 	HintCommandArguments* hintArgsState = (HintCommandArguments*)argsState;
 	switch (argNo) {
@@ -36,16 +98,33 @@ bool hintArgsParser(char* arg, void* argsState, int argNo) {
 	return false;
 }
 
-
+/**
+ * Called by parseCommand, parseArgs continutes processing the user input strings to finish 
+ * the initialization of the Command struct, started by the caller. parseArgs provides
+ * an appropriate parser for the type of command currently being processed. parseArgs uses the
+ * parser to create a struct of the command's arguments according to its type. 
+ * 
+ * @param argsStr				[in] the user input string containing the command arguments 
+ * @param argumentsStruct 		[in, out] a generic pointer to be assigned the command struct
+ * 								with appropriate arguments after parsing is finished
+ * @param argsNum 				[in] the expected number of command arguments according to 
+ * 								the command type
+ * @param parser				[in] the appropriate parser for the given type of command 
+ * @return true 				iff the user provided a sufficient number of valid arguments
+ * @return false 				iff the user provided an insufficient number of arguments, 
+ * 								too many arguments, or invalid arguments values.
+ */
 bool parseArgs(char* argsStr, void* argumentsStruct, int argsNum, commandArgsParser parser) {
 	char* arg = NULL;
 	int i = 0;
 
-	UNUSED(argsStr); /* It seems bizarre not to have this parameter, so we keep it even if it isn't used explicitly (it's used implicitly by strtok) */
+	UNUSED(argsStr); /* It seems bizarre not to have this parameter, so we keep it even 
+	if it isn't used explicitly (it's used implicitly by strtok) */
 
 	for (i = 0; i < argsNum; i++) {
 		arg = strtok(NULL, COMMAND_DELIMITERS);
 		if (arg == NULL) {
+			/* no remaining tokens in input can happen if expected arg count isn't reached */
 			return false;
 		}
 		if (! parser(arg, argumentsStruct, i + 1)) {
@@ -56,6 +135,15 @@ bool parseArgs(char* argsStr, void* argumentsStruct, int argsNum, commandArgsPar
 	return true;
 }
 
+/**
+ * Reserved for future use.
+ * 
+ * cleanupCommand frees memory allocated by parseCommand. In case one of the command types
+ * will need to allocate additional internal memory, there will be a specific cleanup
+ * implementation provided. 
+ * 
+ * @param command		the Command struct whose arguments are removed 
+ */
 void cleanupCommand(Command* command) {
 	commandArgsCleaner cleaners[] = {NULL, NULL, NULL, NULL, NULL, NULL}; /* No cleanup is necessary for any command yet */
 
@@ -71,6 +159,18 @@ void cleanupCommand(Command* command) {
 	}
 }
 
+/**
+ * parseCommand is used to process the user input string and initialize a command 
+ * struct accordingly. If arguments allocation failed due to a memory error, an error 
+ * message is printer out and the process is terminated.
+ * 
+ * @param commandStr 	[in] a pointer to the input string the user provided
+ * @param commandOut 	[in, out] a pointer to a Command struct, to be intilizlized
+ * 						by parseCommand according to the user input
+ * @return true 		iff the user only types whitespaces for the command name
+ * @return false 		iff the command name the user used does not match any of the possible
+ * 						commands names in the game
+ */
 bool parseCommand(char* commandStr, Command* commandOut) {
 	int argsNum = 0;
 	commandArgsParser parser = NULL;
@@ -105,6 +205,7 @@ bool parseCommand(char* commandStr, Command* commandOut) {
 		return false;
 	}
 
+	/* check if arguments allocation failed */
 	if (commandOut->arguments == NULL) {
 		/* NOTE: for now we are allowed this behaviour: */
 		printf("Error: parseCommand has failed\n");

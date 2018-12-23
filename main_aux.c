@@ -1,5 +1,10 @@
 #include "main_aux.h"
 
+/**
+ * printSeparatorLine calculates the number of dashes in a line separator of a sudoku board
+ * of size N, and prints the separarting line.
+ * 
+ */
 void printSeparatorLine() {
 	int numDashes = N * (N * CELL_SIZE_IN_PRINT + BLOCK_OVERHEAD_SIZE_IN_PRINT) + LINE_OVERHEAD_SIZE_IN_PRINT;
 	for (; numDashes > 0; numDashes--) {
@@ -8,6 +13,12 @@ void printSeparatorLine() {
 	printf("\n");
 }
 
+/**
+ * printLine prints an individual line of a given sudoku board, according to the format.
+ * 
+ * @param board			[in] the board whose line will be printed 
+ * @param lineIndex 	[in] the index of the line to be printed
+ */
 void printLine(Board* board, int lineIndex) {
 	int col = 0;
 
@@ -31,6 +42,11 @@ void printLine(Board* board, int lineIndex) {
 	printf("\n");
 }
 
+/**
+ * printBoard prints out the current state of the game board according to the format.
+ * 
+ * @param board		[in] a pointer to the sudoku board to be printed out 
+ */
 void printBoard(Board* board) {
 	int row = 0;
 
@@ -48,6 +64,17 @@ bool isNumCellsToFillValid(int numCellsToFill) {
 	return (numCellsToFill >= 0) && (numCellsToFill <= (N_SQUARE * N_SQUARE - 1));
 }
 
+/**
+ * getNumCellsToFill is called during game initialization. It prompts the user to provided the
+ * desired number of dixed cells in the sudoku board they're about to play. If the number of cells
+ * the user requested to fix is not in the appropriate range, an error message is printed out. If
+ * the input the user provided is not an integer, the entire process is terminated.
+ * 
+ * @param numCellsToFillOut		[in, out] a pointer to an integer, assigned with the number of fixed
+ * 								cells in the sudoku board initialized 
+ * @return true					iff the user provided a valid number of cells to fix
+ * @return false 				iff stdin reached EOF
+ */
 bool getNumCellsToFill(int* numCellsToFillOut) {
 	while (true) {
 		int scanfRetVal = 0;
@@ -72,6 +99,17 @@ bool getNumCellsToFill(int* numCellsToFillOut) {
 	}
 }
 
+/**
+ * initialStage initializes the state of the game when it begins. It takes a pointer to an 
+ * at first null pointer, allocates it and writes the new sudoku board generated to that pointer.
+ * Afterwards, the new sudoku board is printed to the user. 
+ * 
+ * @param state		[in, out] a pointer to a null pointer, to be allocated and assigned by
+ * 					initialStage 
+ * @return true		iff the game has been successfully initialized 
+ * @return false 	iff either getting the number of fixed board cells, puzzle generation
+ * 					or game initialization has failed
+ */
 bool initialStage(State** state) {
 	Board board = {{{{0}}}};
 
@@ -95,11 +133,30 @@ bool initialStage(State** state) {
 	return true;
 }
 
+/**
+ * getCommandString reads a command string from stdin, and writes the input
+ * into the provided string pointer.
+ * 
+ * @param commandStrOut		[out] a pointer to a string. 
+ * @param commandMaxSize	[in] the maximum input size in bytes that should be read stdin
+ * @return true 			iff a string was successfully fetched
+ * @return false 			iff there had been an error and the input fetch had failed
+ */
 bool getCommandString(char* commandStrOut, int commandMaxSize) {
 	char* fgetsRes = fgets(commandStrOut, commandMaxSize, stdin);
 	return fgetsRes != NULL;
 }
 
+/**
+ * performSetCommand executes a given 'set' command from the user.
+ * It attempts to set the board entry according to the user's command. If the command
+ * could not be completed, an appropriate error message is displayed to the user. If 
+ * the command was successfully executed, the updated sudoku board is printed. If the
+ * game has been finished afterwards, a win message is printed. 
+ * 
+ * @param state		[in, out] current state of the game 
+ * @param args 		[in] a pointer to the arguments of the user's set command
+ */
 void performSetCommand(State* state, SetCommandArguments* args) {
 	SetErrorType error;
 	if (!set(state, args->row - 1, args->col - 1, args->value, &error)) {
@@ -122,11 +179,29 @@ void performSetCommand(State* state, SetCommandArguments* args) {
 	}
 }
 
+/**
+ * performHintCommand executes a given 'hint' command from the user.
+ * It prints out the pre-generated hint for the particular index the user has provided.
+ * The hint is then fetched by a second auxiliary function.
+ * 
+ * @param state		[in] current state of the game 
+ * @param args		[in] a pointer to the command arguments of the user's hint command
+ */
 void performHintCommand(State* state, HintCommandArguments* args) {
 	printf("Hint: set cell to %d\n", hint(state, args->row - 1, args->col - 1));
 }
 
+/**
+ * performValidateCommand executes a given 'validate' command from the user.
+ * It uses the backtracking algorithm to solve the sudoku in its current state.
+ * An appropriate message is presented to the user, indicating whether the game
+ * can or cannot be solved in its current condition.
+ * 
+ * @param state		[in] current state of the game 
+ */
 void performValidateCommand(State* state) {
+	/* TODO: update solved board to be the one we created just now in accordance
+	with the boards current configuration */
 	Board solution = {{{{0}}}};
 	if (solvePuzzle(state, &solution)) {
 		printf("Validation passed: board is solvable\n");
@@ -135,6 +210,18 @@ void performValidateCommand(State* state) {
 	}
 }
 
+/**
+ * performCommand uses a switch case to select how to update the game's state according to 
+ * the type of the command provided as a parameter. It either calls an executing function 
+ * matching that command type, or updates attributes of the game's state.
+ * 
+ * @param state				[in] the current state of the game 
+ * @param command 			[in] a pointer to the user's command
+ * @param shouldRestart		[in, out] a pointer to the game's state shouldRestart attribute, 
+ * 							allowing its update 
+ * @param shouldExit 		[in, out] a pointer to the game's state shouldRestart attribute, 
+ * 							allowing its update
+ */
 void performCommand(State* state, Command* command, bool* shouldRestart, bool* shouldExit) {
 	switch (command->type) {
 	case SET:
@@ -157,6 +244,15 @@ void performCommand(State* state, Command* command, bool* shouldRestart, bool* s
 	}
 }
 
+/**
+ * performCommandLoop manages the user interface of the game. It takes commands from the user and
+ * validates them, displaying an error message when the command is found invalid. The commands are
+ * then performed and the game is updated accordingly. After each user turn it checks if the game
+ * should be terminated, then it finishes.
+ * 
+ * @param state		[in, out] a pointer to the current state of the game
+ * @return true 	iff the game should be terminated
+ */
 bool performCommandLoop(State* state) {
 	bool shouldExit = false;
 	while (true) {
@@ -184,6 +280,12 @@ bool performCommandLoop(State* state) {
 	return shouldExit;
 }
 
+/**
+ * runGame starts by initializing the sudoku board and runs the game, exiting when it
+ * is finished.
+ * 
+ * @return true 	iff the game is exited
+ */
 bool runGame() {
 	bool shouldExit = false;
 

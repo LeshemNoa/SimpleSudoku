@@ -2,6 +2,19 @@
 
 /* TODO: potentially these two functions (randomised vs. deterministic) could be merged somehow to reflect indeed how very similar they are */
 
+/**
+ * solvePuzzleRec is used to solve a given sudoku puzzle board by assingning a valid
+ * value to a cell with given indices. The values are selected using the deterministic 
+ * backtracking algorithm. 
+ * 
+ * @param solution		[in, out]  a pointer to a Board struct whose cell will be set						
+ * @param curRow 		[in] row number of the cell currently being set
+ * @param curCol 		[in] column number of the cell currently being set
+ * @return true 		iff the halting condition was reached: the board is completely
+ * 						filled
+ * @return false 		iff there exists no valid value to set in the current cell, and
+ * 						its value was set to EMPTY_CELL_VALUE.
+ */
 bool solvePuzzleRec(Board* solution, int curRow, int curCol) {
 	int nextRow = 0, nextCol = 0;
 	int value = 0;
@@ -33,6 +46,17 @@ bool solvePuzzleRec(Board* solution, int curRow, int curCol) {
 	return false;
 }
 
+/**
+ * solvePuzzle is a wrapper function solvePuzzleRec used to solve a given sudoku
+ * puzzle board. In its recursive calls, generatePuzzleRec will fill the board, employing
+ * the deterministic backtracking algorithm, cell by cell, left to right and top to bottom.
+ * 
+ * @param state			[in] current state of the game 
+ * @param solutionOut 	[in, out] a pointer to a Board struct, to be assigned with a solution
+ * 						for the given board
+ * @return true 		iff the game in its current state was successfully solved
+ * @return false 		iff solving the board has failed
+ */
 bool solvePuzzle(State* state, Board* solutionOut) {
 	Board board;
 	exportBoard(state, &board);
@@ -44,12 +68,26 @@ bool solvePuzzle(State* state, Board* solutionOut) {
 	return false;
 }
 
+/**
+ * generatePuzzleRec is used to generate a sudoku puzzle board by assingning a valid
+ * value to a cell with given indices. The values are selected using the randomized 
+ * backtracking algorithm. 
+ * 
+ * @param board		[in, out] the board currently being filled 
+ * @param curRow 	[in] row number of the cell currently being set
+ * @param curCol 	[in] column number of the cell currently being set	
+ * @return true		iff the halting condition was reached: the board is completely
+ * 					filled
+ * @return false 	iff there exists no valid value to set in the current cell, and
+ * 					its value was set to EMPTY_CELL_VALUE.
+ */
 bool generatePuzzleRec(Board* board, int curRow, int curCol) {
 	int nextRow = 0, nextCol = 0;
 	int value = 0;
 	int potentialValues[N_SQUARE] = {0};
 	int numPotentialValues = 0;
 
+	/* If the board is completely filled */
 	if (curRow == N_SQUARE)
 		return true;
 
@@ -91,6 +129,16 @@ bool generatePuzzleRec(Board* board, int curRow, int curCol) {
 	return false;
 }
 
+/**
+ * generatePuzzle is a wrapper function for generatePuzzleRec used to generate
+ * a new sudoku puzzle board. In its recursive calls, generatePuzzleRec will fill
+ * the board, employing the randomized backtracking algorithm, cell by cell, left
+ * to right and top to bottom.
+ * 
+ * @param board		[in, out] a pointer to a board struct 
+ * @return true 	iff generatePuzzleRec successfully 
+ * @return false 
+ */
 bool generatePuzzle(Board* board) {
 	return generatePuzzleRec(board, 0, 0);
 }

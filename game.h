@@ -16,6 +16,7 @@ typedef struct {
 
 typedef struct {
 	Cell cells[N_SQUARE][N_SQUARE];} Board;
+	
 typedef struct State State;
 
 void exportBoard(State* state, Board* boardOut);
