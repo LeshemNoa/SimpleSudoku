@@ -1,3 +1,23 @@
+/**
+ * GAME Summary:
+ *
+ * A module designed to allow for a sudoku game to be run from start to finish.
+ *
+ * initialise - Creates a new sudoku game
+ * destruct - demolishes a sudoku game when it's of no use
+ * exportBoard - exports a boarding representing the current state of the game
+ * isGameWon - checks whether the game is over
+ * getCellValue - returns the value of a specific cell in the board
+ * setCellValue - sets the value of a specific cell in the board
+ * isCellValueValid - checks if a value is valid for a specific cell in the board
+ * isCellFixed - checks whether a certain cell is fixed in the board
+ * isCellEmpty - checks whether a certain cell is empty (devoid of a value)
+ * emptyCell - empties a cell
+ * set - used to accommodate a 'set' command from the user
+ * hint - used to accommodate a 'hint' command from the user
+ * setPuzzleSolution - sets the stored solution of a sudoku game
+ */
+
 #ifndef GAME_H_
 #define GAME_H_
 

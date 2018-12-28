@@ -1,3 +1,13 @@
+/**
+ * SOLVER Summary:
+ *
+ * A module designed to generate and solve sudoku puzzle using a certain algorithm
+ *
+ * solvePuzzle - solves a sudoku puzzle
+ * generatePuzzle - generated a sudoku puzzle
+ */
+
+
 #ifndef SOLVER_H_
 #define SOLVER_H_
 

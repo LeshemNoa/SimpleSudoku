@@ -1,3 +1,12 @@
+/**
+ * PARSER Summary:
+ *
+ * A module designed to parse user commands for a sudoku game.
+ *
+ * cleanupCommand - cleans up any resources allocated for a previously parsed user command
+ * parseCommand - parses a user command
+ */
+
 #ifndef PARSER_H_
 #define PARSER_H_
 
