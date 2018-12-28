@@ -1,8 +1,14 @@
 #include "main_aux.h"
 
+#define COMMAND_MAX_LENGTH (1024)
+
+#define CELL_SIZE_IN_PRINT (3)
+#define BLOCK_OVERHEAD_SIZE_IN_PRINT (2)
+#define LINE_OVERHEAD_SIZE_IN_PRINT (1)
+
 /**
  * printSeparatorLine calculates the number of dashes in a line separator of a sudoku board
- * of size N, and prints the separarting line.
+ * of size N, and prints the separating line.
  * 
  */
 void printSeparatorLine() {
@@ -26,9 +32,9 @@ void printLine(Board* board, int lineIndex) {
 
 	for (col = 0; col < N_SQUARE; col++) {
 		printf(" ");
-		printf("%c", board->cells[lineIndex][col].isFixed ? '.' : ' ');
-		if (board->cells[lineIndex][col].value != EMPTY_CELL_VALUE) {
-			printf("%d", board->cells[lineIndex][col].value);
+		printf("%c", isCellFixed(board, lineIndex, col) ? '.' : ' ');
+		if (! isCellEmpty(board, lineIndex, col)) {
+			printf("%d", getCellValue(board, lineIndex, col));
 		} else {
 			printf(" ");
 		}
@@ -60,13 +66,22 @@ void printBoard(Board* board) {
 	}
 }
 
+/**
+ * isNumCellsToFillValid verifies that the number of cells to fill is adequate:
+ * i.e., that it is non-negative, and not greater than the total number of cells minus 1
+ * in the board.
+ *
+ * @param numCellsToFill	[in] the number of cells to fill, which is to be checked
+ * @return true				iff numCellsToFill is appropriate (within the range [0, N*N - 1])
+ * @return false			iff numCellsToFill is not appropriate
+ */
 bool isNumCellsToFillValid(int numCellsToFill) {
 	return (numCellsToFill >= 0) && (numCellsToFill <= (N_SQUARE * N_SQUARE - 1));
 }
 
 /**
  * getNumCellsToFill is called during game initialization. It prompts the user to provided the
- * desired number of dixed cells in the sudoku board they're about to play. If the number of cells
+ * desired number of fixed cells in the sudoku board they're about to play. If the number of cells
  * the user requested to fix is not in the appropriate range, an error message is printed out. If
  * the input the user provided is not an integer, the entire process is terminated.
  * 
@@ -200,18 +215,17 @@ void performHintCommand(State* state, HintCommandArguments* args) {
  * @param state		[in] current state of the game 
  */
 void performValidateCommand(State* state) {
-	/* TODO: update solved board to be the one we created just now in accordance
-	with the boards current configuration */
 	Board solution = {{{{0}}}};
 	if (solvePuzzle(state, &solution)) {
 		printf("Validation passed: board is solvable\n");
+		setPuzzleSolution(state, &solution);
 	} else {
 		printf("Validation failed: board is unsolvable\n");
 	}
 }
 
 /**
- * performCommand uses a switch case to select how to update the game's state according to 
+ * performCommand uses a switch statement to select how to update the game's state according to
  * the type of the command provided as a parameter. It either calls an executing function 
  * matching that command type, or updates attributes of the game's state.
  * 
@@ -284,7 +298,7 @@ bool performCommandLoop(State* state) {
  * runGame starts by initializing the sudoku board and runs the game, exiting when it
  * is finished.
  * 
- * @return true 	iff the game is exited
+ * @return true 	iff the game is exited (Rather than: restarted)
  */
 bool runGame() {
 	bool shouldExit = false;

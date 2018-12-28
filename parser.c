@@ -135,15 +135,6 @@ bool parseArgs(char* argsStr, void* argumentsStruct, int argsNum, commandArgsPar
 	return true;
 }
 
-/**
- * Reserved for future use.
- * 
- * cleanupCommand frees memory allocated by parseCommand. In case one of the command types
- * will need to allocate additional internal memory, there will be a specific cleanup
- * implementation provided. 
- * 
- * @param command		the Command struct whose arguments are removed 
- */
 void cleanupCommand(Command* command) {
 	commandArgsCleaner cleaners[] = {NULL, NULL, NULL, NULL, NULL, NULL}; /* No cleanup is necessary for any command yet */
 
@@ -159,18 +150,6 @@ void cleanupCommand(Command* command) {
 	}
 }
 
-/**
- * parseCommand is used to process the user input string and initialize a command 
- * struct accordingly. If arguments allocation failed due to a memory error, an error 
- * message is printer out and the process is terminated.
- * 
- * @param commandStr 	[in] a pointer to the input string the user provided
- * @param commandOut 	[in, out] a pointer to a Command struct, to be intilizlized
- * 						by parseCommand according to the user input
- * @return true 		iff the user only types whitespaces for the command name
- * @return false 		iff the command name the user used does not match any of the possible
- * 						commands names in the game
- */
 bool parseCommand(char* commandStr, Command* commandOut) {
 	int argsNum = 0;
 	commandArgsParser parser = NULL;

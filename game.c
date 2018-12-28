@@ -1,11 +1,10 @@
 #include "game.h"
 
-#define UNUSED(x) (void)(x)
-
 /**
  * State struct represents a sudoku game in its current state. It contains the board itself, a 
  * possible solution for it, and the number of cells left to fill in the board in its current
- * configuration. 
+ * configuration.
+ * Note: the implementation of this struct is meant to be hidden from the user.
  */
 struct State {
 	Board puzzle;
@@ -13,14 +12,6 @@ struct State {
 	int numNonSet;
 };
 
-/**
- * exportBoard assigns a copy (?) of the current Board struct of a given state to the provided
- * pointer.
- * 
- * @param state		[in] the State struct whose board is exported 
- * @param boardOut 	[in, out] a pointer to a Board struct to be assigned with a copy (??) of the 
- * 					state's current board
- */
 void exportBoard(State* state, Board* boardOut) {
 	*boardOut = state->puzzle;
 }
@@ -38,7 +29,7 @@ void exportBoard(State* state, Board* boardOut) {
 bool rowContains(Board* board, int row, int value) {
 	int col = 0;
 	for (col = 0; col < N_SQUARE; col++)
-		if (board->cells[row][col].value == value)
+		if (getCellValue(board, row, col) == value)
 			return true;
 	return false;
 }
@@ -56,7 +47,7 @@ bool rowContains(Board* board, int row, int value) {
 bool colContains(Board* board, int col, int value) {
 	int row = 0;
 	for (row = 0; row < N_SQUARE; row++)
-		if (board->cells[row][col].value == value)
+		if (getCellValue(board, row, col) == value)
 			return true;
 	return false;
 }
@@ -91,25 +82,15 @@ bool blockContains(Board* board, int block, int value) {
 	int row = 0, col = 0;
 	for (row = 0; row < N; row++)
 		for (col = 0; col < N; col++)
-			if (board->cells[rowOffset + row][colOffset + col].value == value)
+			if (getCellValue(board, rowOffset + row, colOffset + col) == value)
 				return true;
 	return false;
 }
 
-/**
- * isCellValueValid checks the validity of a value assignment in a particular cell. A cell value
- * is valid if that value does nto already appear in the row, column or block of the cell in which
- * it's placed.
- * 
- * @param board		[in] pointer to the Board struct to be inspected		
- * @param row 		[in] number of row of the cell whose value's validity is checked
- * @param col 		[in] number of row of the cell whose value's validity is checked
- * @param value 	[in] value of that cell
- * @return true 	iff value is a valid non-zero integer and its placement in the cell is 
- * 					valid
- * @return false 	iff the value is 0 indicating that the cell is empty, or its placement
- * 					in the cell is invalid
- */
+int getCellValue(Board* board, int row, int col) {
+	return board->cells[row][col].value;
+}
+
 bool isCellValueValid(Board* board, int row, int col, int value) {
 	return (getCellValue(board, row, col) == value) ||
 		   (!rowContains(board, row, value) &&
@@ -117,35 +98,12 @@ bool isCellValueValid(Board* board, int row, int col, int value) {
 		    !blockContains(board, whichBlock(row, col), value));
 }
 
-/**
- * setCellValue is used to set the cell with given indices in the given board with the 
- * given value.
- * 
- * @param board 	[in, out] pointer to the Board struct whose cell is set
- * @param row 		[in] the row number of that cell
- * @param col 		[in] the column number of that cell
- * @param value 	[in] the value to be set in that cell
- */
 void setCellValue(Board* board, int row, int col, int value) {
 	board->cells[row][col].value = value;
-	/*UNUSED(board); TODO: try to deal with this */
 }
 
 /**
- * getCellValue returns the value of a particular cell in the sudoku board.
- * 
- * @param board 	[in] pointer to the Board struct containing desired cell
- * @param row 		[in] row number of that cell
- * @param col 		[in] column number of that cell
- * @return int 		the integer contained in that cell
- */
-int getCellValue(Board* board, int row, int col) {
-	return board->cells[row][col].value;
-}
-
-/**
- * fixCell is used during the generation of a new sudoku board to make a cell fixed, making it 
- * one of the sudoku board hints.  
+ * fixCell is used during the generation of a new sudoku board to make a cell fixed.
  * 
  * @param board		[in] pointer to the Board struct whose cell is set to be fixed  
  * @param row 		[in] the row number of that cell
@@ -153,58 +111,28 @@ int getCellValue(Board* board, int row, int col) {
  */
 void fixCell(Board* board, int row, int col) {
 	board->cells[row][col].isFixed = true;
-	/*UNUSED(board); TODO: try to deal with this */
 }
 
-/**
- * isCellFixed checks whether a particular cell of a sudoku board is a fixed cell or 
- * not. 
- * 
- * @param board		[in] pointer to the Board struct whose cell is checked 
- * @param row 		[in] row number of that cell
- * @param col 		[in] column number of that cell
- * @return true 	iff the cell with given indices is fixed
- * @return false 	iff the cell with given indices is not fixed
- */
 bool isCellFixed(Board* board, int row, int col) {
 	return board->cells[row][col].isFixed;
 }
 
-/**
- * isCellEmpty checks whether a particular cell of a sudoku board is empty or not.
- * 
- * @param board		[in] pointer to the Board struct whose cell is checked 
- * @param row 		[in] row number of that cell
- * @param col 		[in] column number of that cell
- * @return true 	iff the cell with given indices is empty
- * @return false 	iff the cell with given indices is not empty
- */
 bool isCellEmpty(Board* board, int row, int col) {
 	return getCellValue(board, row, col) == EMPTY_CELL_VALUE;
 }
 
-/**
- * emptyCell empties a particular cell in a sudoku board. 
- * 
- * @param board 	[in, out] pointer to the Board struct whose cell is being emptied
- * @param row 		[in] row number of that cell
- * @param col 		[in] column number of that cell
- */
 void emptyCell(Board* board, int row, int col) {
 	setCellValue(board, row, col, EMPTY_CELL_VALUE);
 }
 
 /**
- * TODO: is this function duplicate? It's never called by anyone and only setCellValue is used.
- * 
- * 
  * setPuzzleCell sets a value provided by the user to a cell in the sudoku board, in the 
- * current state of the game. 
- * 
- * @param state 
- * @param row 
- * @param col 
- * @param value 
+ * current state of the game. Number of cells to be set is updated if need be.
+ *
+ * @param state 	[in] pointer to the Board struct whose cell is set to be set
+ * @param row 		[in] the row number of that cell
+ * @param col 		[in] the column number of that cell
+ * @param value 	[in] the value to be set to that cell
  */
 void setPuzzleCell(State* state, int row, int col, int value) {
 	if (isCellEmpty(&(state->puzzle), row, col)) {
@@ -214,22 +142,20 @@ void setPuzzleCell(State* state, int row, int col, int value) {
 }
 
 /**
- * set is used to update the game after a 'set' command from the user. First, it checks if
- * the cell the user requested to set has a fixed value. If not, the validity of the given
- * value is checked for that cell. If it's valid, it's set in the cell. If it's invalid, an
- * error is assigned to the provided error pointer.
- * 
- * @param state 			[in, out] a pointer to the State struct containing the board  
- * 							whose cell is being set
- * @param row 				[in] row number of that cell
- * @param col 				[in] column number of that cell
- * @param value 			[in] value the user requested to set in that cell
- * @param errorTypeOut 		[in] a pointer to a SetErrorType object, to be assigned with
- * 							a VALUE_INVALID error in case the value the user provided is invalid
- * @return true 			iff the given value has been validated and set in the cel
- * @return false 			iff the cell the user requested to set if fixed, or if the value
- * 							they provided is invalid for that cell
+ * emptyPuzzleCell empties a cell in the sudoku board, in the current state of the game.
+ * Number of cells to be set is updated if need be.
+ *
+ * @param state 	[in] pointer to the Board struct whose cell is set to be emptied
+ * @param row 		[in] the row number of that cell
+ * @param col 		[in] the column number of that cell
  */
+void emptyPuzzleCell(State* state, int row, int col) {
+	if (!isCellEmpty(&(state->puzzle), row, col)) {
+		state->numNonSet++;
+	}
+	emptyCell(&(state->puzzle), row, col);
+}
+
 bool set(State* state, int row, int col, int value, SetErrorType* errorTypeOut) {
 	if (isCellFixed(&(state->puzzle), row, col)) {
 		*errorTypeOut = VALUE_FIXED;
@@ -240,51 +166,31 @@ bool set(State* state, int row, int col, int value, SetErrorType* errorTypeOut) 
 			*errorTypeOut = VALUE_INVALID;
 			return false;
 		} else {
-			if (isCellEmpty(&(state->puzzle), row, col)) {
-				state->numNonSet--;
-			}
-			setCellValue(&(state->puzzle), row, col, value);
+			setPuzzleCell(state, row, col, value);
 		}
 	} else {
-		if (!isCellEmpty(&(state->puzzle), row, col)) {
-			state->numNonSet++;
-		}
-		emptyCell(&(state->puzzle), row, col);
+		emptyPuzzleCell(state, row, col);
 	}
 
 	return true;
 }
 
-/**
- * isGameWon checks if a sudoku game in its current state is finished by checking if 
- * all of its cells are filled.
- * 
- * @param state		[in] a pointer to a State struct whose numNonSet attribute will be
- * 					checked 
- * @return true 	iff there are no remaining cells to fill in the board
- * @return false 	iff there are still empty cells in the board
- */
 bool isGameWon(State* state) {
 	return state->numNonSet == 0;
 }
 
-/**
- * @brief 
- * 
- * @param state 
- * @param row 
- * @param col 
- * @return int 
- */
 int hint(State* state, int row, int col) {
 	return getCellValue(&(state->solution), row, col);
 }
 
 /**
- * @brief 
+ * randomlyFixCells is to be used in ordered to randomly mark a certain
+ * amount of cells in a given board as fixed.
+ * Canonical use of this function: generation of a puzzle board.
  * 
- * @param board 
- * @param numCellsToFix 
+ * @param board				[in, out] the board whose cells are to be fixed
+ * @param numCellsToFix 	[in] the number of cells to fix (should be not more
+ * 							than the number of cells in board)
  */
 void randomlyFixCells(Board* board, int numCellsToFix) {
 	int fixCount = 0;
@@ -301,7 +207,7 @@ void randomlyFixCells(Board* board, int numCellsToFix) {
 
 /**
  * clearNonFixedCells is used during the puzzle generation process. After the fixed cells
- * in the new board have been selected, clearNonFixed cells empties each cell which hasn't
+ * in the new board have been selected, clearNonFixed cells empties each cell which haven't
  * been fixed to create the puzzle. 
  * 
  * @param board		[in, out] a pointer to the Board struct of which the non fixed cells
@@ -312,18 +218,9 @@ void clearNonFixedCells(Board* board) {
 	for (row = 0; row < N_SQUARE; row++)
 		for (col = 0; col < N_SQUARE; col++)
 			if (! isCellFixed(board, row, col))
-				setCellValue(board, row, col, EMPTY_CELL_VALUE);
+				emptyCell(board, row, col);
 }
 
-/**
- * 
- * 
- * @param numCellsToFill 
- * @param stateOut 
- * @param board 
- * @return true 
- * @return false 
- */
 bool initialise(int numCellsToFill, State** stateOut, Board* board) {
 	*stateOut = calloc(1, sizeof(State));
 	if (*stateOut == NULL) {
@@ -346,11 +243,10 @@ bool initialise(int numCellsToFill, State** stateOut, Board* board) {
 	return true;
 }
 
-/**
- * destruct is used to free memomy of a State struct.
- * 
- * @param state 	[in] State struct to free memory of
- */
+void setPuzzleSolution(State* state, Board* solution) {
+	state->solution = *solution;
+}
+
 void destruct(State* state) {
 	if (state != NULL) {
 		free(state);
