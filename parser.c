@@ -145,9 +145,7 @@ void cleanupCommand(Command* command) {
 		cleaners[command->type](command->arguments);
 	}
 
- 	if (command->arguments != NULL) {
-		free(command->arguments);
-	}
+	free(command->arguments);
 }
 
 bool parseCommand(char* commandStr, Command* commandOut) {
