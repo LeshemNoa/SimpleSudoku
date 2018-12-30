@@ -138,7 +138,7 @@ bool parseArgs(char* argsStr, void* argumentsStruct, int argsNum, commandArgsPar
 void cleanupCommand(Command* command) {
 	commandArgsCleaner cleaners[] = {NULL, NULL, NULL, NULL, NULL, NULL}; /* No cleanup is necessary for any command yet */
 
-	if (command == NULL)
+	if (command == NULL || command->arguments == NULL) {
 		return;
 
 	if (cleaners[command->type] != NULL) {
