@@ -282,7 +282,7 @@ bool performCommandLoop(State* state) {
 			break;
 		}
 
-		if ((!parseCommand(commandStr, &command)) || (isGameWon(state) && command.type != RESTART && command.type != EXIT)){
+		if ((!parseCommand(commandStr, &command)) || (isGameWon(state) && command.type != RESTART && command.type != EXIT && command.type != IGNORE)){
 			printf("Error: invalid command\n");
 		} else {
 			performCommand(state, &command, &shouldRestart, &shouldExit);
