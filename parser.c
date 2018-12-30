@@ -140,6 +140,7 @@ void cleanupCommand(Command* command) {
 
 	if (command == NULL || command->arguments == NULL) {
 		return;
+	}
 
 	if (cleaners[command->type] != NULL) {
 		cleaners[command->type](command->arguments);

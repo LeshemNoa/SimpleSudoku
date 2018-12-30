@@ -210,7 +210,10 @@ void performHintCommand(State* state, HintCommandArguments* args) {
  * performValidateCommand executes a given 'validate' command from the user.
  * It uses the backtracking algorithm to solve the sudoku in its current state.
  * An appropriate message is presented to the user, indicating whether the game
- * can or cannot be solved in its current condition.
+ * can or cannot be solved in its current condition. 
+ * 
+ * Additionally, if the current game is found to be solvable, the solution produced
+ * during the validation process is set to be the new solution of the game.
  * 
  * @param state		[in] current state of the game 
  */
