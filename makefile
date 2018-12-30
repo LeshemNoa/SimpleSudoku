@@ -6,7 +6,7 @@ COMP_FLAG = -ansi -Wall -Wextra -Werror -pedantic-errors
 $(EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@
 
-main.o: main.c main_aux.h
+main.o: main.c main_aux.h SPBufferset.h
 	$(CC) $(COMP_FLAG) -c $*.c
 main_aux.o: main_aux.c main_aux.h parser.h game.h solver.h
 	$(CC) $(COMP_FLAG) -c $*.c
